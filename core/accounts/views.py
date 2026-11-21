@@ -12,6 +12,9 @@ from rest_framework.response import Response
 # To specify HTTP status codes in API responses.
 from rest_framework import status
 
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+
 
 # Create your views here.
 @api_view(["POST"])
@@ -27,3 +30,29 @@ def register(request):
         {"message": "User registartion successfully...!"},
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(["POST"])
+def user_login(request):
+
+    # Get username and password
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+    # Check username and password
+    user = authenticate(username=username, password=password)
+
+    if user:
+        # Generate or get existing token
+        token, create = Token.objects.get_or_create(user=user)
+        # token.key	: Gets the actual token value
+        return Response({"message": "Login successful", "token": token.key})
+
+    else:
+        return Response({"message": "Invalid username or password"}, status=401)
+
+# Postman sent username and password.
+# Django checked the credentials using authenticate().
+# Credentials were correct.
+# Django generated or retrieved the user's token.
+# Django returned the token to Postman.
